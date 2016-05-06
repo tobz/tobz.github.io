@@ -8,14 +8,12 @@ highlighter: pygments
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : Jekyll Bootstrap
-tagline: Site Tagline
+title : No Good, Hardly Updated Internet Blog
+tagline: Let's party like it's 1999-01-01 00:00:01
 author :
-  name : Name Lastname
-  email : blah@email.test
-  github : username
-  twitter : username
-  feedburner : feedname
+  name : Toby Lawrence
+  email : toby@nuclearfurnace.com
+  github : tobz
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
@@ -25,7 +23,7 @@ author :
 # Else if you are pushing to username.github.io, replace with your username.
 # Finally if you are pushing to a GitHub project page, include the project name at the end.
 #
-production_url : http://username.github.io
+production_url : http://tobz.github.io
 
 gems: ["jekyll-sitemap"]
 
@@ -96,7 +94,7 @@ JB :
       colorscheme: light
     duoshuo :
       short_name : jekyllbootstrap
-   
+
   # Settings for analytics helper
   # Set 'provider' to the analytics provider you want to use.
   # Set 'provider' to false to turn analytics off globally.
