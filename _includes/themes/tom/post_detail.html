@@ -14,5 +14,16 @@
     {% if page.location %}{{ page.location }}{% endif %}
   {% endif %}
   </p>
+
+  {% if landing %}
+    {% assign split_content = post.content | split:'<!--more-->' %}
+    {% if split_content.size > 1 %}
+  <div class="excerpt">{{ split_content | first }}</div>
+  <p class="more"><a href="{{ post.url }}">read more..</a></p>
+    {% else %}
+  {{ post.content }}
+    {% endif %}
+  {% else %}
   {{ content }}
+  {% endif %}
 </div>

@@ -1,13 +1,16 @@
-# This is the default format. 
-# For more see: http://jekyllrb.com/docs/permalinks/
-permalink: /:categories/:year/:month/:day/:title 
+# Use the default permalink format.
+permalink: /:categories/:year/:month/:day/:title
+
+# Set up our pagination.
+paginate: 3
+paginate_path: "/pages/:num"
 
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
+
+# GitHub Pages only supports rouge, so that's what we'll use.
 highlighter: rouge
 
-# Themes are encouraged to use these universal variables 
-# so be sure to set them if your theme uses them.
-#
+# Set some basics that our theme takes advantage of.
 title : No Good, Hardly Updated Internet Blog
 tagline: Let's party like it's 1999-01-01 00:00:01
 author :
@@ -15,20 +18,12 @@ author :
   email : toby@nuclearfurnace.com
   github : tobz
 
-# The production_url is only used when full-domain names are needed
-# such as sitemap.txt 
-# Most places will/should use BASE_PATH to make the urls
-#
-# If you have set a CNAME (pages.github.com) set your custom domain here.
-# Else if you are pushing to username.github.io, replace with your username.
-# Finally if you are pushing to a GitHub project page, include the project name at the end.
-#
+# We're currently hosting with bog-standard GitHub Pages.
 production_url : http://tobz.github.io
 
-gems: ["jekyll-sitemap"]
+gems: ["jekyll-sitemap","jekyll-paginate"]
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
-#
 JB :
   version : 0.3.0
 
