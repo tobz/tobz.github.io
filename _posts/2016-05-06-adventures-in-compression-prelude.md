@@ -2,8 +2,6 @@
 layout: post
 title: "Adventures in compression: prelude"
 description: ""
-category: compression learning
-tags: []
 ---
 {% include JB/setup %}
 
