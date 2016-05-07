@@ -19,7 +19,7 @@ author :
   github : tobz
 
 # We're currently hosting with bog-standard GitHub Pages.
-production_url : http://tobz.github.io
+production_url : https://tobz.github.io
 
 gems: ["jekyll-sitemap","jekyll-paginate"]
 
