@@ -65,7 +65,9 @@ The process goes roughly as follows:
 
 When we have one node, that is the root of our Huffman tree.  Let's build this by hand to demonstrate the process.  For our leaf nodes, we'll represent them as __value::frequency__, and we'll represent intermediate nodes as __*::frequency__:
 
--> ![showing the steps of building a Huffman tree](/assets/posts/huffman-coding/tree-building.gif) <-
+<div class="text-center" markdown="1">
+![showing the steps of building a Huffman tree](/assets/posts/huffman-coding/tree-building.gif)
+</div>
 
 Wooo, we now have a tree... but what the heck do we do with *that*?  We need one more bit of understanding before we can start using our tree: the codes!
 
@@ -73,7 +75,9 @@ Wooo, we now have a tree... but what the heck do we do with *that*?  We need one
 
 We need to take our tree and use it to generate codes for all of the different symbols.  To do so, we'll recurse through our tree and assign each node either a zero or a one.  We'll this value the node's "code".  Starting at the root node of the tree, give the child node on the left a code of zero, and the child node on the right a code of one.  If either of those child nodes have their own child nodes, do the same thing.  Repeat the process until you run out of child nodes.  It should end up looking like this:
 
--> ![showing the tree with zeroes and ones assigned to nodes](/assets/posts/huffman-coding/tree-with-zeroes-and-ones.png) <-
+<div class="text-center" markdown="1">
+![showing the tree with zeroes and ones assigned to nodes](/assets/posts/huffman-coding/tree-with-zeroes-and-ones.png)
+</div>
 
 We've now assigned a code to each node in our tree.  Now we can generate an actual code for each _symbol_ in the tree.  A potential approach here is to do a depth-first search, and to pass along a stack/array of the codes each node you've encountered along the way had.  For every node (except the root node, because it's our starting point) you take its code and add it to this stack/array.  When you detect that you've hit a leaf node -- aka a node with a symbol -- you take the current state of the stack (including the code for that node itself) and that is the code the symbol gets.
 
