@@ -54,7 +54,7 @@ We've specifically sorted the table with characters containing the lowest freque
 
 ### Building the tree
 
-All we have left  The process goes roughly as follows:
+The process goes roughly as follows:
 
     - pop two items off the queue (this will be the two lowest-frequency items)
     - create a leaf node for each of them (store the symbol and frequency)
@@ -71,13 +71,13 @@ Wooo, we now have a tree... but what the heck do we do with *that*?  We need one
 
 ### Climbing all over
 
-We now have a tree, with our symbols, and their weights.  What we don't have yet is our codes!  We needed our tree before we could generate our codes, though, so now we can go through and make them.  It's easy!
-
-Starting at the root node of the tree, give the child node on the left a zero, and the child node on the right a one.  Repeat that process with those two child nodes, and any further child nodes.  It should end up looking like this:
+We need to take our tree and use it to generate codes for all of the different symbols.  To do so, we'll recurse through our tree and assign each node either a zero or a one.  We'll this value the node's "code".  Starting at the root node of the tree, give the child node on the left a code of zero, and the child node on the right a code of one.  If either of those child nodes have their own child nodes, do the same thing.  Repeat the process until you run out of child nodes.  It should end up looking like this:
 
 ![showing the tree with zeroes and ones assigned to nodes](/assets/posts/huffman-coding/tree-with-zeroes-and-ones.png)
 
-So, we've labeled each node in our tree.  Now that we've done so, we can generate a mapping of the code that represnets a given symbol.  A potential approach here is to do a depth-first search, and to pass along a stack/array of the zeroes/ones you've encountered along the way.  If a node has a zero/one value -- all nodes besides the root node will have this -- you simply add it to the stack/array.  When you detect that you've hit a leaf node, you take the current state of the stack (including the value added for the current node) and map the symbol of the current node to the full value of the stack/array.  Based on our example tree, let's go through the operations that would map the bottom left-most character, __k__:
+We've now assigned a code to each node in our tree.  Now we can generate an actual code for each _symbol_ in the tree.  A potential approach here is to do a depth-first search, and to pass along a stack/array of the codes each node you've encountered along the way had.  For every node (except the root node, because it's our starting point) you take its code and add it to this stack/array.  When you detect that you've hit a leaf node -- aka a node with a symbol -- you take the current state of the stack (including the code for that node itself) and that is the code the symbol gets.
+
+Based on our example tree, let's go through the operations that would map the bottom left-most character, __k__:
 
     - start at root node (stack: empty)
     - go down left branch to *::8
@@ -89,7 +89,7 @@ So, we've labeled each node in our tree.  Now that we've done so, we can generat
     - code value is 0, add to stack (stack: 010)
     - go down left branch to k::1
     - code value is 0, add to stack (stack: 0100)
-    - node is leaf node, return and add mapping for __k__ to __0100__
+    - node is leaf node, return and add mapping for "k" to "0100"
 
 If we apply this process to the whole tree, we'll end up with a table like this:
 
@@ -108,9 +108,9 @@ If we apply this process to the whole tree, we'll end up with a table like this:
 
 We now have codes for all of our symbols!  An important note here:
 
-I formulated the tree by hand, with some cherrypicking of how I selected values, in an attempt to generate a pleasant tree.  The tree is valid, as far as I can tell, but based on the implementation of your priority queue, the tree might end up slightly different, and thus, with more optimal codes.  I'm not entirely sure, but I have a fleeting suspicion.
+I formulated the original Huffman tree by hand, with some cherrypicking of how I selected values, in an attempt to generate a pleasant-looking tree.  The tree is valid, as far as I can tell, but based on the implementation of your priority queue, and how it handles sorting, your tree might end up slightly different.  In turn, this means you could get slightly different, possibly more optimal, codes for the same example text.
 
-Going further, let's add in the frequency of each symbol next to the code generated for it:
+Moving on, let's add in the frequency of each symbol next to the code generated for it for fun:
 
      symbol  |  frequency  |  code
     ---------------------------------
@@ -125,12 +125,14 @@ Going further, let's add in the frequency of each symbol next to the code genera
        e            1          11110
        g            1          11111
 
-Now it's trivial to see: the higher frequency a character, the smaller of a code it has.  This is part of the magic: if we replace the things that occur more frequently with shorter replacements, we'll save more space.  We get this optimization "for free" based on the algorithm to build the tree.
+Now it's trivial to see: the higher frequency a character, the smaller of a code it has.  This is part of the magic: if we replace the things that occur more frequently with shorter replacements, we'll save more space.  We get this optimization "for free" because of how the algorithm to build the tree works.
 
 ### Back and forth, to and fro
 
 So, now that we have the tree and our mapping, we can use them to encode or decode the corpus!
 
-Encoding the corpus is easy: symbol by symbol, find the code for the symbol, and write it out.  In practice, you're not just going to write bits to an output stream.  You'll have to write bytes.  Most implementations I've found will do something like use a small 4-byte buffer, and do bit shifting to approximate writing bits, and when the buffer overflows, it writes those 4 bytes, or however many, to some actual output stream. (TODO what happens if you're not on a byte boundary? special end of file symbol type thing?)
+With our original example text now fully represented in our Huffman tree, and having codes generated for all the symbols, we're able to compress and decompress the example text!
 
-Decoding involves traversing the tree.  Imagine, using our example tree, you encounter the bits "0101".  Take that very first bit, 0, and go to the left side of the root node.  Now, take the second bit, 1, and take the right path.  You keep repeating this process, reading one bit at a time, until you hit a leaf node.  Once you hit that leaf node, you output the respective symbol to your "decoded" stream and you reset yourself, starting at the root node again.  You repeat this until you've hit the end of your stream, and now you have your decoded corpus! (TODO same as above, how do we know when the stream has ended?)
+Compressing is a piece of cake: symbol by symbol, find the code for the symbol, and write it out as bits.  In practice, you're not just going to write bits to an output stream.  You'll have to write bytes.  Most implementations of Huffman encoding I've found will do something like: create a small 4-byte buffer, and do bit shifting to simulate writing bits, and when the buffer overflows, it writes those 4 bytes, or however many, to some actual output stream, and reinitializes the small 4-byte buffer. (TODO what happens if you're not on a byte boundary? special end of file symbol type thing?)
+
+Decompressing involves traversing the tree.  Imagine, using our example tree, you encounter the bits "0101".  Take that very first bit, 0, and go to the left side of the root node.  Now, take the second bit, 1, and take the right path.  You keep repeating this process, reading one bit at a time, until you hit a leaf node.  Once you hit that leaf node, you output the respective symbol to your "decoded" stream and you reset yourself, starting at the root node again.  You repeat this until you've hit the end of your stream, and now you have your decompressed text.  Ultimately, you're just following the bits down the left of right side of a node until you hit a symbol. (TODO same as above, how do we know when the stream has ended?)
