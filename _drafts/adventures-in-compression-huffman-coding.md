@@ -25,9 +25,11 @@ This means that a code generated for a symbol will never be the prefix of anothe
 
 ## How the hell do we use it?
 
-Alright, we now know that Huffman coding is a _prefix-free_, _variable-length_ code system that maps symbols to codes.  Well, we need to actually map symbols to codes.  How do we do that?  First, we need to remind ourselves what we're after: compression.  Compression operates on replacing common pieces of content with a smaller representation.  Repetition is highly compressible.  Huffman coding operates at the symbol level, which isn't to say it couldn't represent chunks of text, but it's commonly used to represent bytes.
+While we can describe what Huffman coding is, we have to talk about how it's used, otherwise we'll never understand how it obtains the properties that it does.
 
-Thus, the common technique is to establish the frequency is which a given symbol (byte) occurs in our content.  As we construct the Huffman tree (the representation for a Huffman code system against a particular corpus), the symbols with the higher frequency, or weight, will be given shorter codes.  Things that occur more often get shorter codes, which effectively compresses them.  Sweet!
+Huffman coding happens by constructing a _Huffman tree_.  A Huffman tree is a binary tree, meaning every node has, at most, two children, or branches.  A leaf node (a node that has no branches) in a Huffman tree represents a symbol and its _weight_.  Since Huffman trees usually represent the symbols in a given piece of content, the weight is often equivalent to the frequency with which the symbol occurs.  Any node that isn't a leaf node has a weight that is equal to the weight of its children.  In constructing the tree, the symbols with the lowest weight are placed at the bottom, so that the root node of the tree is alway the greatest weight.
+
+As we'll see later on, the algorithm to construct the Huffman tree is what implicitly gives more-frequent symbols shorter codes -- saving space when compressed -- and also ensures that one symbol's code will never be contained within the code for another symbol.  These are the "variable-length" and "prefix-free" properties we mentioned before.
 
 ### Figuring out our corpus
 
@@ -35,9 +37,9 @@ Let's pretend we're compressing a random English idiom:
 
     it takes two to tango
 
-Now, let's count the frequency in which each character appears, leaving us with a table like this:
+Now, let's count the frequency with which each character (or symbol) appears.  We'll refer to the frequency as the "weight" of the symbol.  While doing so, we'll also sort the symbol/weight pairs so that the symbols with the lowest weight are first, or on top.  When we're done, we're left with this:
 
-     symbol | frequency
+     symbol |   weight
     --------------------
        e          1
        g          1
@@ -50,20 +52,21 @@ Now, let's count the frequency in which each character appears, leaving us with 
       ' '         4
        t          6
 
-We've specifically sorted the table with characters containing the lowest frequency first.  No need to go further here with then sorting symbols lexicographically or anything. In practice, you would probably accomplish this with a priority queue, or you could shove all the tuples of (symbol, frequency) into an array and sort them there.  Either way, we'll be using terminology that relates to a queue -- push, pop -- as we talk about interacting with this list.
+You can use whatever data structure you like to tally up the weight of symbols.  In order to build the tree, we'll need to use a queue, and that queue will need to keep all items sorted, so we'll need a priority queue.  If there is an alternative data structure that fulfills this purpose, you can use that, but we'll be using terminology related to queues: enqueue and dequeue.
 
 ### Building the tree
 
-The process goes roughly as follows:
+Since we're building a tree, we'll be working with nodes.  These nodes will have a field for the symbol and the weight, in addition to two fields for a left and right child.  Before starting, take all the symbol/weight pairs and convert them into nodes.  Your priority queue should be configured to have the lowest weight be the highest priority i.e. the first item you get when dequeuing should be the lowest weight.
 
-    - pop two items off the queue (this will be the two lowest-frequency items)
-    - create a leaf node for each of them (store the symbol and frequency)
-    - create an branch node, with both leaf nodes as its children
-    - set the frequency of the branch node as the sum of its children
-    - push that branch node into the queue
+Once the priority queue is populated, we can begin constructing the tree.  The process goes as follows:
+
+    - pop two nodes off the queue (these will be the two lowest-weight items)
+    - create a new node, with both leaf nodes as its children
+    - set the weight of the new node as the sum of its children's weight
+    - push that new node into the queue
     - go back to step 1 and repeat until there is only one node left
 
-When we have one node, that is the root of our Huffman tree.  Let's build this by hand to demonstrate the process.  For our leaf nodes, we'll represent them as __value::frequency__, and we'll represent intermediate nodes as __*::frequency__:
+When we have only one node left, that is the root of our Huffman tree, and the tree is complete.  Let's build this by hand to demonstrate the process.  For the nodes that don't represent symbols, their "symbol" will simply be an asterisk.  The nodes are displayed as __symbol::weight__.
 
 <div class="text-center" markdown="1">
 ![showing the steps of building a Huffman tree](/assets/posts/huffman-coding/tree-building.gif)
@@ -73,15 +76,20 @@ Wooo, we now have a tree... but what the heck do we do with *that*?  We need one
 
 ### Climbing all over
 
-We need to take our tree and use it to generate codes for all of the different symbols.  To do so, we'll recurse through our tree and assign each node either a zero or a one.  We'll this value the node's "code".  Starting at the root node of the tree, give the child node on the left a code of zero, and the child node on the right a code of one.  If either of those child nodes have their own child nodes, do the same thing.  Repeat the process until you run out of child nodes.  It should end up looking like this:
+The fact that a Huffman tree is a binary tree, and that it uses binary codes, is not a coincidence.  If we consider a node in a binary tree, with two potential children, there are only two directions you can go from that node -- left or right.  Since binary is a base 2 numeric system -- 0 and 1 -- a single bit can represent which direction to move.  Let's explore what a Huffman tree looks like if we assign bit values to each node.  If a node is the left child of a parent node, we'll give it a zero.  If it's the right right, we'll give a one.  Our root node will have no value, since it has no parent.
 
 <div class="text-center" markdown="1">
 ![showing the tree with zeroes and ones assigned to nodes](/assets/posts/huffman-coding/tree-with-zeroes-and-ones.png)
 </div>
 
+Now that we've assigned a bit value to each node in our tree, let's consider for a moment what this buys us.
+
+Any symbol which falls on the left side of the root node will always start with a zero bit.  Similarly, any symbol which falls on the right side of the root node will always start with a one bit.  If we go down a level where we have the __*::8__ and __*::13__ nodes, all the symbols on the left side of the __*::8__ node will always start with the bits "00", and all the symbols on the right side will start with the bits "01".  If we repeat this exercise, going all the way to the leaf nodes, what we're actually able to show is that every branch is unique.  There is never a way for something on the right side of the root node, for example, to ever start with a zero bit.  That notion is applied at every level, so that when we reach a symbol, the bits of the nodes which proceed it are always guarenteed to be unique that to symbol.  If that symbol shares a sibling on the other side, they both will have that unique prefix, but they won't have the same code... because the child on the left will always have a zero bit, and the child on the right will always have a one bit.  This is how Huffman coding guarentees that all codes are _prefix-free_.
+
+
 We've now assigned a code to each node in our tree.  Now we can generate an actual code for each _symbol_ in the tree.  A potential approach here is to do a depth-first search, and to pass along a stack/array of the codes each node you've encountered along the way had.  For every node (except the root node, because it's our starting point) you take its code and add it to this stack/array.  When you detect that you've hit a leaf node -- aka a node with a symbol -- you take the current state of the stack (including the code for that node itself) and that is the code the symbol gets.
 
-Based on our example tree, let's go through the operations that would map the bottom left-most character, __k__:
+Now that we understand how these bit values apply to each node in the tree, let's use them to actually figure out what the code would be for a given symbol.  Every time we reach a new node with a bit value, we'll add it to a stack.  This could be an array or a string, but what we're trying to get at here is that we're always appending the bit value to a container, so that when we reach a node which has a symbol, we know the "path", or the bit values, that it took to get there.  We'll use __k__ as our symbol for this example:
 
     - start at root node (stack: empty)
     - go down left branch to *::8
@@ -129,14 +137,12 @@ Moving on, let's add in the frequency of each symbol next to the code generated 
        e            1          11110
        g            1          11111
 
-Now it's trivial to see: the higher frequency a character, the smaller of a code it has.  This is part of the magic: if we replace the things that occur more frequently with shorter replacements, we'll save more space.  We get this optimization "for free" because of how the algorithm to build the tree works.
+Now it's trivial to see: the higher weight, or frequency, a character, the shorter of a code it has.  This is part of the magic: if we replace the things that occur more frequently with shorter replacements, we'll save more space.  We get this optimization "for free" because of how the algorithm to build the tree works.  Cool stuff. :)
 
 ### Back and forth, to and fro
 
-So, now that we have the tree and our mapping, we can use them to encode or decode the corpus!
-
-With our original example text now fully represented in our Huffman tree, and having codes generated for all the symbols, we're able to compress and decompress the example text!
+We've built our Huffman tree and we've figured out how to generate the codes for our symbols with it.  Now we can compress and decompress our example string.
 
 Compressing is a piece of cake: symbol by symbol, find the code for the symbol, and write it out as bits.  In practice, you're not just going to write bits to an output stream.  You'll have to write bytes.  Most implementations of Huffman encoding I've found will do something like: create a small 4-byte buffer, and do bit shifting to simulate writing bits, and when the buffer overflows, it writes those 4 bytes, or however many, to some actual output stream, and reinitializes the small 4-byte buffer. (TODO what happens if you're not on a byte boundary? special end of file symbol type thing?)
 
-Decompressing involves traversing the tree.  Imagine, using our example tree, you encounter the bits "0101".  Take that very first bit, 0, and go to the left side of the root node.  Now, take the second bit, 1, and take the right path.  You keep repeating this process, reading one bit at a time, until you hit a leaf node.  Once you hit that leaf node, you output the respective symbol to your "decoded" stream and you reset yourself, starting at the root node again.  You repeat this until you've hit the end of your stream, and now you have your decompressed text.  Ultimately, you're just following the bits down the left of right side of a node until you hit a symbol. (TODO same as above, how do we know when the stream has ended?)
+Decompressing involves traversing the tree.  Imagine, using our example tree, you encounter the bits "0101".  Take that very first bit, 0, and go to the left side of the root node.  Now, take the second bit, 1, and take the right path.  You keep repeating this process, reading one bit at a time, until you hit a leaf node.  Once you hit that leaf node, you output the respective symbol to your "decoded" stream and you reset yourself, starting at the root node again.  You repeat this until you've hit the end of your stream, and now you have your decompressed text.  Ultimately, you're just following the bits down the left of right side of a node until you hit a symbol, as we mentioned previously. (TODO same as above, how do we know when the stream has ended?)
