@@ -76,7 +76,7 @@ Wooo, we now have a tree... but what the heck do we do with *that*?  We need one
 
 ### Climbing all over
 
-The fact that a Huffman tree is a binary tree, and that it uses binary codes, is not a coincidence.  If we consider a node in a binary tree, with two potential children, there are only two directions you can go from that node -- left or right.  Since binary is a base 2 numeric system -- 0 and 1 -- a single bit can represent which direction to move.  Let's explore what a Huffman tree looks like if we assign bit values to each node.  If a node is the left child of a parent node, we'll give it a zero.  If it's the right right, we'll give a one.  Our root node will have no value, since it has no parent.
+The fact that a Huffman tree is a binary tree, and that it uses binary codes, is not a coincidence.  If we consider a node in a binary tree, with two potential children, there are only two directions you can go from that node -- left or right.  Since binary is a base 2 numeric system -- 0 and 1 -- a single bit can represent which direction to move.  Let's explore what a Huffman tree looks like if we assign bit values to each node.  If a node is the left child of a parent node, we'll give it a zero.  If it's the right child, we'll give a one.  Our root node will have no value, since it has no parent.
 
 <div class="text-center" markdown="1">
 ![showing the tree with zeroes and ones assigned to nodes](/assets/posts/huffman-coding/tree-with-zeroes-and-ones.png)
