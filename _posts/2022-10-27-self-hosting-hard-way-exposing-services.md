@@ -10,9 +10,10 @@ number of services on my own infrastructure, complete with a cheeky location cod
 network begins. Being able to use these services on the go is just as important as using them at
 home where they might be hosted.
 
-**tl;dr: Cloudflare Tunnel for avoiding directly exposing my home infrastructre, Authentik running
-on Fly.io for exposing an externally-accessible Identity Provider, and Cloudflare Access using
-Authentik as an IdP for authenticating/authorizing all requests before they ever hit my network**
+**tl;dr: Cloudflare Tunnel for avoiding having to directly expose my home infrastructure, Authentik
+running on Fly.io for exposing an externally-accessible Identity Provider, and Cloudflare Access
+using Authentik as an IdP for authenticating/authorizing all requests before they ever hit my
+network**
 
 ## Why not Tailscale?
 
