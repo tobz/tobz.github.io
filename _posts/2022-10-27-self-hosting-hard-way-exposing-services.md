@@ -72,11 +72,11 @@ This is really, really cool and helps us check off a lot of boxes, at least part
 > whole Kiwi Farms situation. In no uncertain terms: fuck Kiwi Farms and all of the dipshits who
 > gave it life.
 >
-> If there was another company providing a service equivalent to **Cloudflare Tunnel**, I'd use it.
+> If there was another company providing a service equivalent to Cloudflare Tunnel, I'd use it.
 > Until then, I'm not actually giving Cloudflare money, and I'm mostly trying to provide a service
 > to friends and family in a secure way.
 >
-> If you know of such a service, I'm all ears!
+> If you know of an equivalent offering, I'm all ears!
 
 I repurposed my existing Cloudflare account to host the DNS for my quirky self-hosting domain (this
 one!). The setup instructions for Cloudflare Tunnel and `cloudflared`, the daemon that runs in your
@@ -84,7 +84,7 @@ infrastructure, are short but straightforward. I spun up a simple "Hello world!"
 servers, and ran `cloudflared` via Docker. After a small bit of configuration in the Zero Trust
 dashboard to create a new subdomain and associate it with a target on my side of the tunnel, we were
 serving traffic... except I had misspelled "world" as "wordl", so now my low-grade dyslexia was
-publically -- albeit _securely_ -- on display to the whole... "wordl".
+publically -- albeit _securely_ -- on display to the whole... "wordl."
 
 All told, this proof of concept took less than 30 minutes. Honestly, it felt a lot like magic. I was
 on a roll at this point.
@@ -94,11 +94,11 @@ Onward!
 ## We need a bouncer at the entrance
 
 While having the services safely exposed to the internet was half the battle, I still needed an
-answer to the problem of authentication/authorization. As I alluded to above, I was trying to
+answer to the problem of authentication/authorization. As alluded to above, I was trying to
 imagine what the chinks in the armor might be for a set-up like this, and naturally, software
 vulnerabilities came to mind. Even if a service is fronted by Cloudflare, an attacker can still get
 requests to the service. I write software for a living, and I know just how much code is out there,
-waiting for someone to walk by and notice how trivially it can be eviserated.
+waiting for someone to walk by and notice how trivially it can be eviscerated.
 
 I needed a way to actually protect the service before traffic was allowed through, by authenticating
 and authorizing users. I considered the security of the applications themselves as out of scope
@@ -243,7 +243,7 @@ application hosted on my home infrastructure... and it was all free!
 
 ## Let's pretend for just a moment
 
-I've said a lot of words above but let's look at a concrete example of how this all works together.
+Much ink was spilled above, so let's briefly recap the steps and setup we undertook here:
 
 - I have an existing Plex server, shared with friends and family, which acts as the authentication
   (and authorization) provider. Plex already has mechanisms to share itself (network-wise) outside
@@ -290,25 +290,26 @@ the user is interacting with the application.
 
 ## What we've learned/accomplished
 
-I set out to expose an application running on my home infrastructure without having to necessarily
-expose it directly to the internet, messing with routers and firewalls. I also set out to only allow
-authorized users to access that application, based on federated authentication/authorization that
-these users had already onboarded with and that I ultimately controlled.
+We set out to expose an application running on our home infrastructure without having to necessarily
+expose it directly to the internet, and without messing with routers and firewalls. We also set out
+to only allow authorized users to access said application, based on federated
+authentication/authorization that these users had already onboarded with and that we ultimately
+controlled.
 
-I was able to do all of this without _any_ traffic ever hitting my home infrastructure before the
+We were able to do all of this without _any_ traffic ever hitting our home infrastructure before the
 user/request was authenticated and authorized, and without needing to host the
 authentication/authorization endpoints on the very same home infrastructure, such that Cloudflare
-and Fly.io bore the full weight of any potential DDoS/intrustion attempts. If a bug in Authentik was
-found and exploited, there's the potential for the authentication/authorization flow to be
-compromised, leading to getting access to the protected application... but I can focus more of our
-time and energy on securing the Authentik deployment rather than also having to harden every single
-application I want to expose.
+and Fly.io bear almost all of the weight of any potential DDoS/intrustion attempts. If a bug in
+Authentik was found and exploited, there's the potential for the authentication/authorization flow
+to be compromised, leading to getting access to the protected application or our home
+infrastructure...  but now we can focus more of our time and energy on securing the Authentik
+deployment rather than also having to harden every single application that we want to expose.
 
-Finally, but just as importantly: I was able to do this all for free*, with primarily open-source
+Finally, but just as importantly: we were able to do this all for free*, with primarily open-source
 software that can be examined and replaced if need be, save for the Tunnel/Access magic provided by
 Cloudflare.
 
 All in all, not the most convoluted infrastructure I've ever spun up, but sure as heck one of the
-more useful bits of infrastructure I've ever set up.
+more useful bits of infrastructure I've set up.
 
 More to come.
