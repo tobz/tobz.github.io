@@ -1,5 +1,2 @@
-Here you can say lots of fun things about your site.
-
-Maybe say a some things about yourself.
-
-Or maybe what you plan to blog about.
+Over a decade of writing software, operating operating, and over--sometimes under--engineering
+things. Embedded electronics, cannabis cultivation, woodworking, homelabbing, and more. Caveat lector. 
