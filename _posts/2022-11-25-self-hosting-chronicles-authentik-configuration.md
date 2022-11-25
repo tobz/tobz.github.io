@@ -180,7 +180,7 @@ Authentik supports what they call a "meta model": since blueprints are tied almo
 actual models, they have a concept of "meta models" which allow operations other than creating a
 model object. The only meta model currently is "apply blueprint."
 
-If you're like me, you might read that and think "oh nice, dependency management!". OR maybe
+If you're like me, you might read that and think "oh nice, dependency management!". Or maybe
 something along those lines. It's certainly what I thought, given that meta models are described as:
 
 > This meta model can be used to apply another blueprint instance within a blueprint instance. This
