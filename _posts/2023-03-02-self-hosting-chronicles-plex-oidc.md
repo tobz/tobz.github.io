@@ -15,47 +15,52 @@ infrastructure.
 
 ## Issues with Authentik
 
-### Hard to customize
-
-Authentik does not provide much customization around the styling of flow pages.
+### Hard to customize styling
 
 This one was superficial, but given the amount of time I spent configuring Authentik just to do the
-necessary authentication/authorization, it was frustrating to spend so much more time trying to find
-ways to make simple changes. Essentially, while Authentik lets you configure the background image on
-a given flow (refresher: every step has a flow i.e., authentication, authorization, etc.),
-specifying custom CSS was not possible. Given that my users have to interact with the
-authentication/authorization flow, I wanted to make stylistic and UX tweaks, but I couldn't.
+necessary authentication/authorization, it was frustrating not being able easily change the styling
+of various flows.
 
-While Authentik theoretically exposed a way to provide custom CSS, it wasn't sufficient to style
-most components, as most UI components were custom and used the shadow DOM. Authentik itself would
-need to adjust those components to _allow_ them to be styled from the outside. There was an
-[issue][authentik_2693] filed for this shortcoming which now theoretically has a fix, which is
-great!
+Authentik normally allows you to configure the "flow background" which is just the background image
+displayed on a given flow. It also has a pre-existing stylesheet import in its HTML templates for
+custom CSS, so long as you can put a CSS file at the right path on disk. Unfortunately, due to
+Authentik's UI being heavily based on custom components using the shadow DOM, they cannot be styled
+simply by injecting a CSS stylesheet at the head of the HTML document.
+
+This limitation made it effectively impossible to style the user-facing flows without manually
+overriding the various HTML templates _and_ various bits of bundled JavaScript and CSS. Doing so
+would not be conducive to updating to new versions of Authentik without having to make sure our
+changes still applied cleanly and hadn't broken UI functionality.
+
+> Author's note: There was an [issue][authentik_2693] filed for this shortcoming which now
+> theoretically has a fix, which is great!
 
 ### High memory overhead
 
-I ran Authentik on [fly.io][fly_io], which notably has a free tier: up to three (3) VMs with 1
+I ran Authentik on [fly.io][fly_io], which notably has a free tier: up to 3 virtual machines with 1
 shared vCPU and 256MB of memory. This should be more than enough for a simple web application that
 serves maybe 10-15 requests a day at most, and yet, I had to go above and beyond the free tier to
 run Authentik.
 
-Authentik's deployment consumes all three of the three VMs possible on the free tier: one for
-Authentik itself, one for Postgres, and one for Redis.
+Fundamentally, Authentik and its requirements meant we needed to deploy three applications, and thus
+use up all of the allocatable free tier VMs: one for Authentik itself, one for Redis, and one for
+Postgres. This would be fine if the free timer VM size but adequately, but you can probbably guess
+where this is going...
 
-Generally speaking, Redis was able to fit within these constraints because it's already designed to
-be configured with memory limits. As far as Postgres, it was also usually able to fit within limits
-but during its own startup, as well as Authentik's startup, it would often hit the memory limits and
-OOM itself. The amount of data stored was less than 5MB total. Still, between pre-allocated buffers
-and various queries made by Authentik, it often seemed to manage to just crest the memory limits
-long enough to be hit by the OOM killer. Authentik itself was the significant outlier, frequently
-ballooning up to 350-400MB idle RSS over time.
+Generally speaking, Redis was able to fit within the free tier constraints because it's already
+designed to be configured with memory limits. As far as Postgres, it was also usually able to fit
+within limits but during its own startup, as well as Authentik's startup, it would often hit the
+memory limits and OOM itself. The amount of data stored was less than 5MB total. Still, between
+pre-allocated buffers and various queries made by Authentik, it often seemed to manage to just crest
+the memory limits long enough to be hit by the OOM killer. Authentik itself was the significant
+outlier, frequently ballooning up to 350-400MB idle RSS over time.
 
 Due to this, I had to increase the size of the two VMs used for Postgres and Authentik to have 512MB
 of memory. Increasing the memory allocation knocked me out of the free tier. As I've said in
-previous posts, fly.io is awesome and I'm okay with paying them, but it rubbed my software engineer
-brain the wrong way to know I was paying for something that, again, saw so few requests on average
-that it was practically idle 99.99999% of the time.
-
+previous posts, fly.io is awesome and I'm okay with paying them, but it certainly rubbed me the
+wrong way: the application is idle nearly 100% of the time, and yet I had to bump up the VM
+size, and incur a monthly bill, just because it was a hungry hungry hippo for memory those few times
+it happened to serve a request every week.
 ### Fundamental flow-based design led to a janky browser experience
 
 While Authentik's flow-based design is excellent from a composability standpoint, being able to
